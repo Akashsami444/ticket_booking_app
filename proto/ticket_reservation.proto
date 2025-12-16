@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package ticket_reservation;
 
+option go_package = "github.com/Akash-private/Cloudbees_code/proto;proto";
+
 service TicketReservation{
   // A simple RPC.
   //
