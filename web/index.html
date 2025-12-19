@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Train Booking Dashboard</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 40px; background: #f4f7f6; }
+        .container { max-width: 900px; margin: auto; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h2 { color: #2c3e50; border-bottom: 20px; }
+        input, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        button { background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; }
+        .btn-modify { background: #2980b9; }
+        .btn-cancel { background: #c0392b; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚆 Train Reservation System</h1>
+
+        <div class="card">
+            <h2>Book New Ticket</h2>
+            <form action="/book" method="POST">
+                <input type="text" name="first_name" placeholder="Passenger Name" required>
+                <input type="email" name="email" placeholder="Email Address" required>
+                <button type="submit">Confirm Booking</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Modify Seat / Section</h2>
+            <form action="/modify" method="POST">
+                <input type="number" name="ticket_no" placeholder="Ticket Number" required>
+                <input type="text" name="section" placeholder="New Section (A/B)" required>
+                <input type="number" name="seat" placeholder="New Seat Number" required>
+                <button type="submit" class="btn-modify">Update Seat</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Cancel Ticket</h2>
+            <form action="/cancel" method="POST">
+                <input type="number" name="ticket_no" placeholder="Ticket Number" required>
+                <button type="submit" class="btn-cancel">Cancel Reservation</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

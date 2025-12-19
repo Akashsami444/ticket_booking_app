@@ -1,0 +1,42 @@
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: traindb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d traindb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - train-network
+
+  grpc-server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # This URL tells Go how to find the database container
+      DATABASE_URL: "host=db port=5432 user=user password=password dbname=traindb sslmode=disable"
+    networks:
+      - train-network
+
+  web-ui:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+    ports:
+      - "8888:8888"
+    depends_on:
+      - grpc-server
+    networks:
+      - train-network
+
+networks:
+  train-network:
+    driver: bridge
