@@ -2,13 +2,14 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"database/sql"
 	"log"
 	"net"
+	"os"
 	"sync"
 
 	pb "github.com/Akash-private/Cloudbees_code/proto"
-
+	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -16,187 +17,98 @@ import (
 
 type TicketReservationServer struct {
 	pb.UnimplementedTicketReservationServer
-	mu            sync.Mutex
-	seatDB        map[string][]*uint64
-	ticketDB      map[uint64]*pb.ReservationResponse
-	ticketCounter uint64
-}
-
-func NewServer() *TicketReservationServer {
-	return &TicketReservationServer{
-		seatDB: map[string][]*uint64{
-			"A": make([]*uint64, 20),
-			"B": make([]*uint64, 20),
-		},
-		ticketDB: make(map[uint64]*pb.ReservationResponse),
-	}
-}
-
-func (s *TicketReservationServer) ReserveTicket(
-	ctx context.Context,
-	req *pb.ReservationRequest,
-) (*pb.ReservationResponse, error) {
-
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	s.ticketCounter++
-	ticketNo := s.ticketCounter
-
-	fmt.Println(req)
-
-	passengers := make([]*pb.UserDetails, 0)
-
-	for i, p := range req.Passengers {
-		isReserved := false
-		section := p.Section
-		seat := p.Seat
-
-		newP := &pb.UserDetails{
-			FirstName: p.FirstName,
-			LastName:  p.LastName,
-			Email:     p.Email,
-			Address:   p.Address,
-		}
-
-		if section != "" && seat > 0 {
-			if s.seatDB[section][seat-1] != nil {
-				for j := range s.seatDB[section] {
-					if s.seatDB[section][j] == nil {
-						newP.Seat = uint32(j + 1)
-						newP.Section = section
-						isReserved = true
-						break
-					}
-				}
-			} else {
-				newP.Seat = seat
-				newP.Section = section
-				isReserved = true
-			}
-		}
-
-		if !isReserved {
-			found := false
-			for _, sec := range []string{"A", "B"} {
-				for j := range s.seatDB[sec] {
-					if s.seatDB[sec][j] == nil {
-						newP.Seat = uint32(j + 1)
-						newP.Section = sec
-						found = true
-						break
-					}
-				}
-				if found {
-					break
-				}
-			}
-		}
-
-		s.seatDB[newP.Section][newP.Seat-1] = &ticketNo
-		passengers = append(passengers, newP)
-
-		fmt.Println("Passenger", i+1, "=>", newP)
-	}
-
-	resp := &pb.ReservationResponse{
-		TicketNo:       ticketNo,
-		FromCode:       req.FromCode,
-		ToCode:         req.ToCode,
-		PricePaid:      req.PricePaid,
-		PassengerCount: req.PassengerCount,
-		Passengers:     passengers,
-		Status:         "Confirmed",
-	}
-
-	s.ticketDB[ticketNo] = resp
-
-	fmt.Println("Seat_DB:", s.seatDB)
-	fmt.Println("Ticket_DB:", s.ticketDB)
-
-	return resp, nil
-}
-
-func (s *TicketReservationServer) ModifyTicket(
-	ctx context.Context,
-	req *pb.ReservationRequest,
-) (*pb.ReservationResponse, error) {
-
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	if req.TicketNo == nil {
-		return nil, status.Error(codes.InvalidArgument, "ticket_no is required")
-	}
-	ticketNo := *req.TicketNo
-
-	resp := s.ticketDB[ticketNo]
-
-	for i, p := range req.Passengers {
-		if s.seatDB[p.Section][p.Seat-1] == nil ||
-			*s.seatDB[p.Section][p.Seat-1] != ticketNo {
-
-			if s.seatDB[p.Section][p.Seat-1] != nil {
-				resp.Status = "Failed! The seat is already booked!"
-			} else {
-				old := resp.Passengers[i]
-				s.seatDB[old.Section][old.Seat-1] = nil
-				s.seatDB[p.Section][p.Seat-1] = &ticketNo
-				resp.Status = "Success! The seat(s) are booked!"
-			}
-		}
-		resp.Passengers[i].Section = p.Section
-		resp.Passengers[i].Seat = p.Seat
-	}
-
-	if resp.Status == "Success! The seat(s) are booked!" {
-		s.ticketDB[*req.TicketNo] = resp
-	}
-
-	fmt.Println("Seat_DB:", s.seatDB)
-	fmt.Println("Ticket_DB:", s.ticketDB)
-
-	return resp, nil
-}
-
-func (s *TicketReservationServer) CancelTicket(
-	ctx context.Context,
-	req *pb.ReservationRequest,
-) (*pb.ReservationResponse, error) {
-
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	if req.TicketNo == nil {
-		return nil, status.Error(codes.InvalidArgument, "ticket_no is required")
-	}
-	ticketNo := *req.TicketNo
-
-	resp := s.ticketDB[ticketNo]
-
-	resp.Status = "Cancelled"
-
-	for _, p := range resp.Passengers {
-		s.seatDB[p.Section][p.Seat-1] = nil
-		p.Section = ""
-		p.Seat = 0
-	}
-
-	fmt.Println("Seat_DB:", s.seatDB)
-	fmt.Println("Ticket_DB:", s.ticketDB)
-
-	return resp, nil
+	mu sync.Mutex
+	db *sql.DB
 }
 
 func main() {
-	lis, err := net.Listen("tcp", ":50051")
+	// Connect to DB via Environment Variable
+	dbURL := os.Getenv("DATABASE_URL")
+	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Could not connect to DB: %v", err)
+	}
+	defer db.Close()
+
+	// Setup Database Table
+	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS tickets (
+		id SERIAL PRIMARY KEY,
+		passenger_name TEXT,
+		email TEXT,
+		section TEXT,
+		seat INT,
+		status TEXT
+	)`)
+	if err != nil {
+		log.Fatalf("Table creation failed: %v", err)
 	}
 
-	grpcServer := grpc.NewServer()
-	pb.RegisterTicketReservationServer(grpcServer, NewServer())
+	// Start Listener
+	lis, err := net.Listen("tcp", ":50051")
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
 
-	log.Println("🚆 gRPC server running on :50051")
-	grpcServer.Serve(lis)
+	s := grpc.NewServer()
+	pb.RegisterTicketReservationServer(s, &TicketReservationServer{db: db})
+
+	log.Println("🚆 gRPC Server with Postgres running on :50051")
+	if err := s.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
+}
+
+func (s *TicketReservationServer) ReserveTicket(ctx context.Context, req *pb.ReservationRequest) (*pb.ReservationResponse, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	var id uint64
+	p := req.Passengers[0]
+
+	// Default allocation for demo: Section A, Seat 1 (You can add logic to find next free seat)
+	err := s.db.QueryRow(
+		"INSERT INTO tickets (passenger_name, email, section, seat, status) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+		p.FirstName, p.Email, "A", 1, "Confirmed",
+	).Scan(&id)
+
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "DB Insert Error: %v", err)
+	}
+
+	return &pb.ReservationResponse{TicketNo: id, Status: "Booked Successfully", Passengers: req.Passengers}, nil
+}
+
+func (s *TicketReservationServer) ModifyTicket(ctx context.Context, req *pb.ReservationRequest) (*pb.ReservationResponse, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if req.TicketNo == nil {
+		return nil, status.Error(codes.InvalidArgument, "ID required")
+	}
+
+	p := req.Passengers[0]
+	_, err := s.db.Exec("UPDATE tickets SET section = $1, seat = $2, status = $3 WHERE id = $4",
+		p.Section, p.Seat, "Modified", *req.TicketNo)
+
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "DB Update Error: %v", err)
+	}
+
+	return &pb.ReservationResponse{TicketNo: *req.TicketNo, Status: "Modification Saved"}, nil
+}
+
+func (s *TicketReservationServer) CancelTicket(ctx context.Context, req *pb.ReservationRequest) (*pb.ReservationResponse, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if req.TicketNo == nil {
+		return nil, status.Error(codes.InvalidArgument, "ID required")
+	}
+
+	_, err := s.db.Exec("DELETE FROM tickets WHERE id = $1", *req.TicketNo)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "DB Delete Error: %v", err)
+	}
+
+	return &pb.ReservationResponse{TicketNo: *req.TicketNo, Status: "Ticket Cancelled/Deleted"}, nil
 }
