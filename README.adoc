@@ -1,0 +1,99 @@
+= 🚆 Train Ticket Reservation System
+:toc: left
+:toclevels: 3
+:icons: font
+:sectnums:
+
+A comprehensive mini-application built with **Go**, **gRPC**, and **PostgreSQL**. This project demonstrates a microservices-style architecture with a web-to-gRPC bridge.
+
+
+
+== 🚀 Overview
+This application allows users to manage train seat reservations through a clean web interface. To ensure compatibility with development environments (like those running Jenkins), the web interface is configured to run on a custom port.
+
+=== Key Features
+* *High Performance:* Uses gRPC for internal service communication.
+* *Persistence:* Fully integrated with PostgreSQL to ensure data is not lost on restart.
+* *Conflict-Free:* Web UI runs on port `8888` to avoid common `8080` conflicts.
+* *Dockerized:* One-command deployment using Docker Compose.
+
+== 🛠️ Tech Stack
+[cols="1,3"]
+|===
+| Component | Technology
+
+| Language | Go (Golang) 1.21+
+| API | gRPC / Protocol Buffers
+| Database | PostgreSQL 15 (Alpine)
+| UI | HTML5 / CSS3 (Go Templates)
+| Orchestration | Docker Compose
+|===
+
+== 📂 Project Structure
+----
+.
+├── proto/               # gRPC definitions (.proto files)
+├── server/              # Backend gRPC Server (Logic & DB layer)
+│   ├── main.go
+│   └── Dockerfile
+├── web/                 # Web Bridge (HTTP UI & gRPC Client)
+│   ├── main.go
+│   ├── index.html
+│   └── Dockerfile
+└── docker-compose.yml   # Infrastructure as Code
+----
+
+== ⚙️ Setup & Installation
+
+=== Prerequisites
+* Docker Desktop installed and running.
+* Go installed (optional, only for local development outside Docker).
+
+=== 1. Quick Start with Docker
+[source,bash]
+----
+# Navigate to the project root
+cd ticket_booking_app
+
+# Build and start all services
+docker compose up --build
+----
+
+=== 2. Verification
+Once the containers are healthy, access the following:
+
+* **Web UI:** http://localhost:8888
+* **gRPC Server:** localhost:50051 (Internal access)
+* **PostgreSQL:** localhost:5432 (Internal access)
+
+[NOTE]
+====
+If port `8888` is occupied, change the mapping in `docker-compose.yml` under the `web-ui` service.
+====
+
+== 📡 API Interface (gRPC)
+The system supports the following core RPC methods:
+
+`ReserveTicket`::
+Creates a new reservation and generates a unique Ticket ID.
+`ModifyTicket`::
+Updates the section (A/B) or seat number for an existing Ticket ID.
+`CancelTicket`::
+Permanently removes a reservation from the database.
+
+== 🛠️ Troubleshooting
+
+.Port Conflicts
+If you see `bind: address already in use`, it means port `8888` or `5432` is taken. Use `lsof -i :8888` to identify the process.
+
+.Database Connection
+The `grpc-server` waits for the `db` to be healthy before starting. If it fails, check the logs with `docker compose logs db`.
+
+== 📜 License
+Personal Project -Akashsami.
+----
+== Future enhancement
+* UI
+* Adding more functionalities
+---
+
