@@ -11,7 +11,7 @@ service TicketReservation{
  rpc ReserveTicket(ReservationRequest) returns (ReservationResponse) {}
  rpc ModifyTicket(ReservationRequest) returns (ReservationResponse) {}
  rpc CancelTicket(ReservationRequest) returns (ReservationResponse) {}
-
+ rpc GetAllTickets(EmptyRequest) returns (AllTicketsResponse) {}
 }
 
 message user_details{
@@ -40,4 +40,14 @@ message ReservationResponse{
  uint64 passenger_count = 5;
  repeated user_details passengers = 6;
  string status = 7;
+}
+
+
+  
+
+
+message EmptyRequest {}
+
+message AllTicketsResponse {
+  repeated ReservationResponse tickets = 1;
 }

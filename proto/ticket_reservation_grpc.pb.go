@@ -22,6 +22,7 @@ const (
 	TicketReservation_ReserveTicket_FullMethodName = "/ticket_reservation.TicketReservation/ReserveTicket"
 	TicketReservation_ModifyTicket_FullMethodName  = "/ticket_reservation.TicketReservation/ModifyTicket"
 	TicketReservation_CancelTicket_FullMethodName  = "/ticket_reservation.TicketReservation/CancelTicket"
+	TicketReservation_GetAllTickets_FullMethodName = "/ticket_reservation.TicketReservation/GetAllTickets"
 )
 
 // TicketReservationClient is the client API for TicketReservation service.
@@ -34,6 +35,7 @@ type TicketReservationClient interface {
 	ReserveTicket(ctx context.Context, in *ReservationRequest, opts ...grpc.CallOption) (*ReservationResponse, error)
 	ModifyTicket(ctx context.Context, in *ReservationRequest, opts ...grpc.CallOption) (*ReservationResponse, error)
 	CancelTicket(ctx context.Context, in *ReservationRequest, opts ...grpc.CallOption) (*ReservationResponse, error)
+	GetAllTickets(ctx context.Context, in *EmptyRequest, opts ...grpc.CallOption) (*AllTicketsResponse, error)
 }
 
 type ticketReservationClient struct {
@@ -74,6 +76,16 @@ func (c *ticketReservationClient) CancelTicket(ctx context.Context, in *Reservat
 	return out, nil
 }
 
+func (c *ticketReservationClient) GetAllTickets(ctx context.Context, in *EmptyRequest, opts ...grpc.CallOption) (*AllTicketsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AllTicketsResponse)
+	err := c.cc.Invoke(ctx, TicketReservation_GetAllTickets_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TicketReservationServer is the server API for TicketReservation service.
 // All implementations must embed UnimplementedTicketReservationServer
 // for forward compatibility.
@@ -84,6 +96,7 @@ type TicketReservationServer interface {
 	ReserveTicket(context.Context, *ReservationRequest) (*ReservationResponse, error)
 	ModifyTicket(context.Context, *ReservationRequest) (*ReservationResponse, error)
 	CancelTicket(context.Context, *ReservationRequest) (*ReservationResponse, error)
+	GetAllTickets(context.Context, *EmptyRequest) (*AllTicketsResponse, error)
 	mustEmbedUnimplementedTicketReservationServer()
 }
 
@@ -102,6 +115,9 @@ func (UnimplementedTicketReservationServer) ModifyTicket(context.Context, *Reser
 }
 func (UnimplementedTicketReservationServer) CancelTicket(context.Context, *ReservationRequest) (*ReservationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CancelTicket not implemented")
+}
+func (UnimplementedTicketReservationServer) GetAllTickets(context.Context, *EmptyRequest) (*AllTicketsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllTickets not implemented")
 }
 func (UnimplementedTicketReservationServer) mustEmbedUnimplementedTicketReservationServer() {}
 func (UnimplementedTicketReservationServer) testEmbeddedByValue()                           {}
@@ -178,6 +194,24 @@ func _TicketReservation_CancelTicket_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TicketReservation_GetAllTickets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EmptyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TicketReservationServer).GetAllTickets(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TicketReservation_GetAllTickets_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TicketReservationServer).GetAllTickets(ctx, req.(*EmptyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TicketReservation_ServiceDesc is the grpc.ServiceDesc for TicketReservation service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -196,6 +230,10 @@ var TicketReservation_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CancelTicket",
 			Handler:    _TicketReservation_CancelTicket_Handler,
+		},
+		{
+			MethodName: "GetAllTickets",
+			Handler:    _TicketReservation_GetAllTickets_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

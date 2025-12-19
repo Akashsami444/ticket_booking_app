@@ -112,3 +112,28 @@ func (s *TicketReservationServer) CancelTicket(ctx context.Context, req *pb.Rese
 
 	return &pb.ReservationResponse{TicketNo: *req.TicketNo, Status: "Ticket Cancelled/Deleted"}, nil
 }
+
+func (s *TicketReservationServer) GetAllTickets(ctx context.Context, req *pb.EmptyRequest) (*pb.AllTicketsResponse, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	rows, err := s.db.Query("SELECT id, passenger_name, email, section, seat, status FROM tickets ORDER BY id DESC")
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "DB Query Error: %v", err)
+	}
+	defer rows.Close()
+
+	var tickets []*pb.ReservationResponse
+	for rows.Next() {
+		var t pb.ReservationResponse
+		var p pb.UserDetails
+		err := rows.Scan(&t.TicketNo, &p.FirstName, &p.Email, &p.Section, &p.Seat, &t.Status)
+		if err != nil {
+			continue
+		}
+		t.Passengers = []*pb.UserDetails{&p}
+		tickets = append(tickets, &t)
+	}
+
+	return &pb.AllTicketsResponse{Tickets: tickets}, nil
+}

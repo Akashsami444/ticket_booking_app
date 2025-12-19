@@ -35,15 +35,6 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8888", nil))
 }
 
-func handleHome(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles("index.html")
-	if err != nil {
-		http.Error(w, "Template not found", 500)
-		return
-	}
-	tmpl.Execute(w, nil)
-}
-
 func handleBook(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		return
@@ -110,4 +101,27 @@ func renderResult(w http.ResponseWriter, title string, resp *pb.ReservationRespo
 		return
 	}
 	fmt.Fprintf(w, "<h2>%s</h2><p>Ticket No: %d</p><p>Status: %s</p><a href='/'>Go Back</a>", title, resp.TicketNo, resp.Status)
+}
+
+func handleHome(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// 1. Fetch all tickets from gRPC server to display in the table
+	resp, err := client.GetAllTickets(ctx, &pb.EmptyRequest{})
+	if err != nil {
+		// If the server is down or DB is empty, we handle it gracefully
+		log.Printf("Could not fetch tickets: %v", err)
+		// We can still show the page even if the list is empty
+		resp = &pb.AllTicketsResponse{}
+	}
+
+	tmpl, err := template.ParseFiles("index.html")
+	if err != nil {
+		http.Error(w, "Template index.html not found", 500)
+		return
+	}
+
+	// 2. Pass the list of tickets to the HTML template
+	tmpl.Execute(w, resp.Tickets)
 }
