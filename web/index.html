@@ -47,5 +47,36 @@
             </form>
         </div>
     </div>
+    <div class="card">
+    <h2>All Bookings (Database Live View)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Passenger</th>
+                <th>Email</th>
+                <th>Section</th>
+                <th>Seat</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .}}
+            <tr>
+                <td><strong>{{.TicketNo}}</strong></td>
+                <td>{{(index .Passengers 0).FirstName}}</td>
+                <td>{{(index .Passengers 0).Email}}</td>
+                <td>{{(index .Passengers 0).Section}}</td>
+                <td>{{(index .Passengers 0).Seat}}</td>
+                <td><span style="color: green;">{{.Status}}</span></td>
+            </tr>
+            {{else}}
+            <tr>
+                <td colspan="6" style="text-align: center;">No bookings found in database.</td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+</div>
 </body>
 </html>

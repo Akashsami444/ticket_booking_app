@@ -281,6 +281,86 @@ func (x *ReservationResponse) GetStatus() string {
 	return ""
 }
 
+type EmptyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EmptyRequest) Reset() {
+	*x = EmptyRequest{}
+	mi := &file_proto_ticket_reservation_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EmptyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EmptyRequest) ProtoMessage() {}
+
+func (x *EmptyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_ticket_reservation_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EmptyRequest.ProtoReflect.Descriptor instead.
+func (*EmptyRequest) Descriptor() ([]byte, []int) {
+	return file_proto_ticket_reservation_proto_rawDescGZIP(), []int{3}
+}
+
+type AllTicketsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Tickets       []*ReservationResponse `protobuf:"bytes,1,rep,name=tickets,proto3" json:"tickets,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AllTicketsResponse) Reset() {
+	*x = AllTicketsResponse{}
+	mi := &file_proto_ticket_reservation_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AllTicketsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AllTicketsResponse) ProtoMessage() {}
+
+func (x *AllTicketsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_ticket_reservation_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AllTicketsResponse.ProtoReflect.Descriptor instead.
+func (*AllTicketsResponse) Descriptor() ([]byte, []int) {
+	return file_proto_ticket_reservation_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *AllTicketsResponse) GetTickets() []*ReservationResponse {
+	if x != nil {
+		return x.Tickets
+	}
+	return nil
+}
+
 var File_proto_ticket_reservation_proto protoreflect.FileDescriptor
 
 const file_proto_ticket_reservation_proto_rawDesc = "" +
@@ -316,11 +396,15 @@ const file_proto_ticket_reservation_proto_rawDesc = "" +
 	"\n" +
 	"passengers\x18\x06 \x03(\v2 .ticket_reservation.user_detailsR\n" +
 	"passengers\x12\x16\n" +
-	"\x06status\x18\a \x01(\tR\x06status2\xbd\x02\n" +
+	"\x06status\x18\a \x01(\tR\x06status\"\x0e\n" +
+	"\fEmptyRequest\"W\n" +
+	"\x12AllTicketsResponse\x12A\n" +
+	"\atickets\x18\x01 \x03(\v2'.ticket_reservation.ReservationResponseR\atickets2\x9a\x03\n" +
 	"\x11TicketReservation\x12b\n" +
 	"\rReserveTicket\x12&.ticket_reservation.ReservationRequest\x1a'.ticket_reservation.ReservationResponse\"\x00\x12a\n" +
 	"\fModifyTicket\x12&.ticket_reservation.ReservationRequest\x1a'.ticket_reservation.ReservationResponse\"\x00\x12a\n" +
-	"\fCancelTicket\x12&.ticket_reservation.ReservationRequest\x1a'.ticket_reservation.ReservationResponse\"\x00B5Z3github.com/Akash-private/Cloudbees_code/proto;protob\x06proto3"
+	"\fCancelTicket\x12&.ticket_reservation.ReservationRequest\x1a'.ticket_reservation.ReservationResponse\"\x00\x12[\n" +
+	"\rGetAllTickets\x12 .ticket_reservation.EmptyRequest\x1a&.ticket_reservation.AllTicketsResponse\"\x00B5Z3github.com/Akash-private/Cloudbees_code/proto;protob\x06proto3"
 
 var (
 	file_proto_ticket_reservation_proto_rawDescOnce sync.Once
@@ -334,26 +418,31 @@ func file_proto_ticket_reservation_proto_rawDescGZIP() []byte {
 	return file_proto_ticket_reservation_proto_rawDescData
 }
 
-var file_proto_ticket_reservation_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_proto_ticket_reservation_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_proto_ticket_reservation_proto_goTypes = []any{
 	(*UserDetails)(nil),         // 0: ticket_reservation.user_details
 	(*ReservationRequest)(nil),  // 1: ticket_reservation.ReservationRequest
 	(*ReservationResponse)(nil), // 2: ticket_reservation.ReservationResponse
+	(*EmptyRequest)(nil),        // 3: ticket_reservation.EmptyRequest
+	(*AllTicketsResponse)(nil),  // 4: ticket_reservation.AllTicketsResponse
 }
 var file_proto_ticket_reservation_proto_depIdxs = []int32{
 	0, // 0: ticket_reservation.ReservationRequest.passengers:type_name -> ticket_reservation.user_details
 	0, // 1: ticket_reservation.ReservationResponse.passengers:type_name -> ticket_reservation.user_details
-	1, // 2: ticket_reservation.TicketReservation.ReserveTicket:input_type -> ticket_reservation.ReservationRequest
-	1, // 3: ticket_reservation.TicketReservation.ModifyTicket:input_type -> ticket_reservation.ReservationRequest
-	1, // 4: ticket_reservation.TicketReservation.CancelTicket:input_type -> ticket_reservation.ReservationRequest
-	2, // 5: ticket_reservation.TicketReservation.ReserveTicket:output_type -> ticket_reservation.ReservationResponse
-	2, // 6: ticket_reservation.TicketReservation.ModifyTicket:output_type -> ticket_reservation.ReservationResponse
-	2, // 7: ticket_reservation.TicketReservation.CancelTicket:output_type -> ticket_reservation.ReservationResponse
-	5, // [5:8] is the sub-list for method output_type
-	2, // [2:5] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	2, // 2: ticket_reservation.AllTicketsResponse.tickets:type_name -> ticket_reservation.ReservationResponse
+	1, // 3: ticket_reservation.TicketReservation.ReserveTicket:input_type -> ticket_reservation.ReservationRequest
+	1, // 4: ticket_reservation.TicketReservation.ModifyTicket:input_type -> ticket_reservation.ReservationRequest
+	1, // 5: ticket_reservation.TicketReservation.CancelTicket:input_type -> ticket_reservation.ReservationRequest
+	3, // 6: ticket_reservation.TicketReservation.GetAllTickets:input_type -> ticket_reservation.EmptyRequest
+	2, // 7: ticket_reservation.TicketReservation.ReserveTicket:output_type -> ticket_reservation.ReservationResponse
+	2, // 8: ticket_reservation.TicketReservation.ModifyTicket:output_type -> ticket_reservation.ReservationResponse
+	2, // 9: ticket_reservation.TicketReservation.CancelTicket:output_type -> ticket_reservation.ReservationResponse
+	4, // 10: ticket_reservation.TicketReservation.GetAllTickets:output_type -> ticket_reservation.AllTicketsResponse
+	7, // [7:11] is the sub-list for method output_type
+	3, // [3:7] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_proto_ticket_reservation_proto_init() }
@@ -368,7 +457,7 @@ func file_proto_ticket_reservation_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_ticket_reservation_proto_rawDesc), len(file_proto_ticket_reservation_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
